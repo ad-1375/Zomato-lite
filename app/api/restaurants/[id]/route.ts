@@ -45,12 +45,12 @@ export async function GET(
   }
 
   // One pass for the numbers, one for the list — plainly visible SQL for each.
-  const [stats] = await sql<{ totalReviews: number; averageRating: string | null }>`
+  const [stats] = (await sql`
     SELECT COUNT(*)::int AS "totalReviews", AVG(rating) AS "averageRating"
     FROM reviews
     WHERE restaurant_id = ${restaurantId}
-  `;
-  const rows = (await sql<ReviewRow>`
+  `) as unknown as { totalReviews: number; averageRating: string | null }[];
+  const rows = (await sql`
     SELECT id, rating, comment, created_at
     FROM reviews
     WHERE restaurant_id = ${restaurantId}
