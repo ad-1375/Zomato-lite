@@ -120,7 +120,7 @@ export default function ReviewPage() {
         )}
       </p>
 
-      <form onSubmit={handleSubmit} className="mt-10 space-y-8">
+      <form onSubmit={handleSubmit} className="mt-10 space-y-10">
         {/* Real radios: arrow keys walk the five stars, screen readers announce
             "1 out of 5 stars", and each tap target is 48px. */}
         <fieldset className="m-0 border-0 p-0">
@@ -137,7 +137,7 @@ export default function ReviewPage() {
               {rating === null ? "– / 5" : `${rating} / 5`}
             </p>
           </div>
-          <div className="mt-3 flex gap-2">
+          <div className="mt-4 flex gap-2">
             {[1, 2, 3, 4, 5].map((star) => (
               <label
                 key={star}
