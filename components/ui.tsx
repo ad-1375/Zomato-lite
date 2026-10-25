@@ -1,30 +1,18 @@
-// components/ui.tsx — tiny presentational helpers shared by the screens.
-// Presentation only: glyphs, gentle colour, and time wording. No fetching,
-// no business logic, no arithmetic beyond comparing elapsed time to fixed cutoffs.
+// components/ui.tsx — presentational helpers for the restyled screens.
+// Presentation only: colour choices, date wording, skeleton blocks. No fetching,
+// no business logic — every piece of data arrives fetched, never invented here.
 
-const MINUTE = 60 * 1000;
-const HOUR = 60 * MINUTE;
-const DAY = 24 * HOUR;
-const WEEK = 7 * DAY;
-
-// "2 days ago" — the wording people actually want. The exact date is never
-// thrown away: callers keep it in a title attribute (see absoluteDate), so
-// hover and screen readers still get the full fact.
-export function relativeTime(iso: string): string {
-  const delta = Date.now() - new Date(iso).getTime();
-  if (delta < 45 * 1000) return "just now";
-  const rtf = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
-  if (delta < HOUR) {
-    return rtf.format(-Math.max(1, Math.round(delta / MINUTE)), "minute");
-  }
-  if (delta < DAY) return rtf.format(-Math.round(delta / HOUR), "hour");
-  if (delta < WEEK) return rtf.format(-Math.round(delta / DAY), "day");
-  if (delta < 4 * WEEK) return rtf.format(-Math.round(delta / WEEK), "week");
-  return absoluteDate(iso);
+export function shortDate(iso: string): string {
+  // "25 Oct" — the compact wording the design uses on cards and rows.
+  return new Date(iso).toLocaleDateString(["en-IN", "en"], {
+    day: "numeric",
+    month: "short",
+  });
 }
 
-// The full, unambiguous date — displayed on hover and heard from screen readers.
-export function absoluteDate(iso: string): string {
+export function longDate(iso: string): string {
+  // The full, unambiguous date — kept for the hover tooltip, so a short label
+  // never hides the real fact.
   return new Date(iso).toLocaleDateString(["en-IN", "en"], {
     day: "numeric",
     month: "short",
@@ -32,22 +20,59 @@ export function absoluteDate(iso: string): string {
   });
 }
 
-// The score bubble: small, amber, easy to scan — same warm family as the stars.
-export function ScoreChip({ rating }: { rating: number }) {
+// The colour language for individual ratings, straight from the design:
+//   4–5 stars  → green (good meal)
+//   3 stars    → amber (middle)
+//   1–2 stars  → red (bad meal)
+// The average's own number and star row stay amber — the brand's warm accent.
+export function ratingTone(rating: number): string {
+  if (rating <= 2) return "text-red-600";
+  if (rating === 3) return "text-amber-500";
+  return "text-green-600";
+}
+
+interface RatingStarsProps {
+  rating: number;
+  /** "scale" colours stars by the rating value; "amber" is the brand accent (average row). */
+  tone?: "amber" | "scale";
+  size?: string;
+  className?: string;
+}
+
+// A row of five stars: filled up to the rating, muted after.
+export function RatingStars({
+  rating,
+  tone = "scale",
+  size = "text-sm",
+  className = "",
+}: RatingStarsProps) {
+  const filled = tone === "amber" ? "text-amber-500" : ratingTone(rating);
   return (
-    <span className="inline-flex h-6 items-center rounded-md border border-amber-200 bg-amber-50 px-2 text-xs font-semibold text-amber-700">
-      {rating}
+    <span
+      role="img"
+      aria-label={`${rating} out of 5 stars`}
+      className={`inline-flex ${className}`}
+    >
+      {[1, 2, 3, 4, 5].map((star) => (
+        <span
+          key={star}
+          aria-hidden="true"
+          className={`${size} leading-none ${star <= rating ? filled : "text-neutral-300"}`}
+        >
+          ★
+        </span>
+      ))}
     </span>
   );
 }
 
-// A soft placeholder block, shown while data is in flight instead of a dead
-// "Loading…" sentence. It keeps the page from jumping when content arrives.
+// A soft placeholder block, shown while data is in flight so the page
+// never jumps when content arrives.
 export function Skeleton({ className = "" }: { className?: string }) {
   return (
     <span
       aria-hidden="true"
-      className={`animate-pulse rounded bg-neutral-200 ${className}`}
+      className={`animate-pulse rounded-md bg-neutral-200 ${className}`}
     />
   );
 }
