@@ -12,9 +12,11 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+// Metadata mirrors the reference deployment — the tab no longer claims
+// to be one restaurant; it names the app.
 export const metadata: Metadata = {
-  title: "Ludhiana Burrito",
-  description: "Leave a review for Ludhiana Burrito, Sector 32",
+  title: "Zomato Lite",
+  description: "Restaurant reviews, simply shared.",
 };
 
 export default function RootLayout({
