@@ -8,6 +8,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { ScoreChip, relativeTime, absoluteDate, Skeleton } from "@/components/ui";
 
 interface Review {
   id: number;
@@ -27,20 +28,14 @@ interface RestaurantPageData {
 }
 
 // Presentation only: five glyphs, bright up to the rating, muted after.
-function Stars({ rating }: { rating: number }) {
+// `className` lets callers resize the glyphs (list rows use a smaller size).
+function Stars({ rating, className = "" }: { rating: number; className?: string }) {
   return (
-    <span aria-label={`${rating} out of 5 stars`}>
+    <span role="img" aria-label={`${rating} out of 5 stars`} className={className}>
       <span className="text-amber-600">{"★".repeat(rating)}</span>
       <span className="text-neutral-300">{"★".repeat(5 - rating)}</span>
     </span>
   );
-}
-
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleString([], {
-    dateStyle: "medium",
-    timeStyle: "short",
-  });
 }
 
 export default function RestaurantPage() {
@@ -76,10 +71,27 @@ export default function RestaurantPage() {
   if (!data) {
     return (
       <main className="mx-auto w-full max-w-[560px] px-6 py-14">
-        <p className="text-sm text-neutral-500">Loading…</p>
+        {/* Soft placeholders, shaped like what is coming: heading, meta,
+            big number, latest card, two list rows. */}
+        <div className="space-y-3" aria-busy="true">
+          <p className="sr-only">Loading…</p>
+          <Skeleton className="block h-8 w-2/5" />
+          <Skeleton className="block h-4 w-1/4" />
+          <Skeleton className="mt-9 block h-14 w-full" />
+          <Skeleton className="mt-2 block h-28 w-full rounded-lg" />
+          <Skeleton className="mt-3 block h-20 w-full" />
+          <Skeleton className="mt-3 block h-20 w-full" />
+        </div>
       </main>
     );
   }
+
+  // The list under "Earlier" should honestly be earlier: the newest review is
+  // left out, because it already has its own card above. Nothing is deleted —
+  // this is only a decision about what this list displays.
+  const earlier = data.reviews.filter(
+    (review) => review.id !== data.latestReview?.id
+  );
 
   return (
     <main className="mx-auto w-full max-w-[560px] px-6 py-14">
@@ -88,42 +100,55 @@ export default function RestaurantPage() {
         {data.cuisine} · {data.area}
       </p>
 
-      {/* THE line of this screen: the backend said 4.5, so 4.5 gets printed. */}
-      <p className="mt-10 flex items-baseline gap-3">
+      {/* THE line of this screen: the backend said 4.3, so 4.3 gets printed. */}
+      <section
+        aria-label="Rating summary"
+        className="mt-8 flex items-baseline gap-3 border-b border-neutral-200 pb-5"
+      >
         <span className="text-6xl font-semibold leading-none tracking-tight">
           {data.averageRating === null ? "—" : data.averageRating}
         </span>
         <span className="text-sm text-neutral-500">
           {data.totalReviews} {data.totalReviews === 1 ? "review" : "reviews"}
         </span>
-      </p>
+      </section>
 
       {data.latestReview && (
-        <article className="mt-8 rounded-lg border border-neutral-200 bg-white p-5">
+        <article className="mt-6 rounded-lg border border-neutral-200 bg-white p-5">
           <p className="text-xs font-medium uppercase tracking-widest text-neutral-400">
             Latest
           </p>
-          <div className="mt-3">
-            <Stars rating={data.latestReview.rating} />
+          <div className="mt-3 flex items-center gap-2.5">
+            <ScoreChip rating={data.latestReview.rating} />
+            <Stars rating={data.latestReview.rating} className="text-xs" />
           </div>
           <p className="mt-2 text-lg leading-snug">{data.latestReview.comment}</p>
-          <p className="mt-3 text-xs text-neutral-400">
-            {formatDate(data.latestReview.createdAt)}
+          <p
+            className="mt-3 text-xs text-neutral-400"
+            title={absoluteDate(data.latestReview.createdAt)}
+          >
+            {relativeTime(data.latestReview.createdAt)}
           </p>
         </article>
       )}
 
-      {data.reviews.length > 0 && (
+      {earlier.length > 0 && (
         <section className="mt-6">
           <h2 className="text-sm font-medium text-neutral-500">Earlier</h2>
           <ul className="mt-1 divide-y divide-neutral-200">
-            {data.reviews.map((review) => (
+            {earlier.map((review) => (
               <li key={review.id} className="py-4">
-                <Stars rating={review.rating} />
-                <p className="mt-1">{review.comment}</p>
-                <p className="mt-1 text-xs text-neutral-400">
-                  {formatDate(review.createdAt)}
-                </p>
+                <div className="flex items-center gap-2.5">
+                  <ScoreChip rating={review.rating} />
+                  <Stars rating={review.rating} className="text-xs" />
+                  <span
+                    className="ml-auto text-xs text-neutral-400"
+                    title={absoluteDate(review.createdAt)}
+                  >
+                    {relativeTime(review.createdAt)}
+                  </span>
+                </div>
+                <p className="mt-1.5">{review.comment}</p>
               </li>
             ))}
           </ul>
