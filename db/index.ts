@@ -13,4 +13,16 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-export const sql = neon(process.env.DATABASE_URL);
+// Defence: strip stray whitespace/control characters (or accidental wrapping
+// quotes) before the driver parses the string. Untrusted input, always.
+const databaseUrl = (process.env.DATABASE_URL ?? "")
+  .trim()
+  .replace(/^["']+|["']+$/g, "");
+
+if (!databaseUrl) {
+  throw new Error(
+    "DATABASE_URL is empty after trimming. Check the value stored in .env.local or in Vercel's environment variables."
+  );
+}
+
+export const sql = neon(databaseUrl);
