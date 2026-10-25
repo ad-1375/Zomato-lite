@@ -1,26 +1,545 @@
 @import "tailwindcss";
 
-/* The whole app's palette: off-white paper, near-black ink, one warm accent (amber, used only for stars). */
+/* ============================================================
+   Zomato Lite — design system
+   ------------------------------------------------------------
 
+   This is the exact stylesheet of the reference deployment,
+   ported rule-for-rule. Its @font-face block (self-hosted woff
+   files) and its Tailwind preflight are the only pieces left
+   out — this project provides both through next/font and the
+   Tailwind import above, so including them again would only
+   duplicate and break relative font URLs.
+
+   Map of the file, so a reader can find the feeling of a screen:
+     1. tokens        — the whole palette, one small pile of words
+     2. page frame    — the white body and the centered 520px shell
+     3. shared pieces — topbar, kicker, brand mark, wordmark, eyebrow
+     4. restaurant    — heading, rating summary, latest card, list, CTA
+     5. review form   — back link, star picker, comment box, submit
+     6. breakpoints   — the two width rules the reference applies
+
+   The color story is deliberate:
+     red #e83f54   = the brand (badge, wordmark, eyebrows, CTA only)
+     green #38834a = every rating chip, calm and identical
+     yellow #ffd64a= the star glyph inside anything green
+     everything else is white, near-white, or gray ink.
+   ============================================================ */
+
+/* 1 — tokens */
 :root {
-  --background: #fafaf9;
-  --foreground: #1c1917;
+  --lightningcss-light: initial; /* build artifact of the source; kept verbatim */
+  --lightningcss-dark: ;
+  color-scheme: light;
+  --background: #fff;
+  --foreground: #1c1c1c;
+  --muted: #747474;
+  --line: #ededed;
+  --accent: #e83f54;
+  --accent-soft: #fff0f2;
+  --rating: #38834a;
+  --surface: #fff;
+  --surface-soft: #f7f7f7;
 }
 
-html,
+/* 2 — page frame */
+* {
+  box-sizing: border-box;
+}
 body {
   background: var(--background);
   color: var(--foreground);
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  margin: 0;
+}
+button,
+textarea {
+  font: inherit;
+}
+.page-shell {
+  width: min(100% - 36px, 520px);
+  margin: 0 auto;
+  padding: 34px 0 72px;
 }
 
-body {
-  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+/* 3 — shared pieces */
+.screen-kicker {
+  color: var(--muted);
+  letter-spacing: .13em;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 0;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+}
+.screen-topbar {
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 30px;
+  display: flex;
+}
+.wordmark {
+  color: var(--accent);
+  white-space: nowrap;
+  align-items: baseline;
+  gap: 5px;
+  display: inline-flex;
+}
+.wordmark > span {
+  letter-spacing: -.085em;
+  font-size: 23px;
+  font-style: italic;
+  font-weight: 900;
+  line-height: 1;
+}
+.wordmark > small {
+  color: var(--foreground);
+  letter-spacing: .01em;
+  font-size: 10px;
+  font-weight: 800;
+}
+.brand-mark {
+  background: var(--accent);
+  color: #fff;
+  letter-spacing: -.08em;
+  border-radius: 10px 10px 10px 3px;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  font-size: 17px;
+  font-weight: 800;
+  display: grid;
+}
+.restaurant-heading {
+  margin-bottom: 25px;
+}
+.eyebrow {
+  color: var(--accent);
+  letter-spacing: .12em;
+  margin: 0 0 9px;
+  font-size: 10px;
+  font-weight: 700;
+}
+h1,
+h2,
+p {
+  margin-top: 0;
+}
+h1 {
+  letter-spacing: -.055em;
+  margin-bottom: 10px;
+  font-size: max(32px, min(8vw, 44px));
+  font-weight: 700;
+  line-height: 1.08;
+}
+.muted,
+.review-count {
+  color: var(--muted);
 }
 
-/* Keyboard users must see where they are: a visible ink-coloured ring
-   around links whenever focus arrives by keyboard, never by mouse click. */
-a:focus-visible {
-  outline: 2px solid var(--foreground);
-  outline-offset: 2px;
-  border-radius: 4px;
+/* 4 — restaurant screen */
+.restaurant-heading > .muted {
+  margin: 0;
+  font-size: 15px;
+}
+.restaurant-meta {
+  align-items: center;
+  gap: 10px;
+  display: flex;
+}
+.meta-divider {
+  background: #b9b9b9;
+  border-radius: 50%;
+  width: 4px;
+  height: 4px;
+}
+.rating-summary {
+  background: linear-gradient(115deg, #f7fbf7 0%, #fff 80%);
+  border: 1px solid #e8efe9;
+  border-radius: 18px;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin: 0 0 22px;
+  padding: 18px;
+  display: flex;
+}
+.rating-copy .eyebrow {
+  margin-bottom: 6px;
+}
+.rating-copy .review-count {
+  margin: 0;
+  font-size: 12px;
+}
+.rating-pill {
+  background: var(--rating);
+  color: #fff;
+  border-radius: 9px;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  min-width: 84px;
+  padding: 8px 12px;
+  display: flex;
+}
+.average-rating {
+  color: inherit;
+  letter-spacing: -.05em;
+  margin: 0;
+  font-size: 25px;
+  font-weight: 750;
+  line-height: 1;
+}
+.rating-star {
+  color: #ffd64a;
+  font-size: 17px;
+}
+.review-count {
+  color: var(--muted);
+  margin: 0;
+  font-size: 12px;
+}
+.latest-review,
+.empty-state {
+  background: var(--surface);
+  border: 1px solid #f0f0f0;
+  border-radius: 20px;
+  padding: 23px 22px 21px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 9px 30px rgba(0, 0, 0, .05);
+}
+.latest-review:before {
+  background: var(--accent);
+  content: "";
+  width: 4px;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: auto;
+}
+.latest-card-top,
+.section-label-row,
+.older-heading-row {
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  display: flex;
+}
+.latest-card-top h2,
+.empty-state h2,
+.section-heading {
+  color: var(--foreground);
+  letter-spacing: -.025em;
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+}
+.review-rating-chip {
+  background: var(--rating);
+  color: #fff;
+  border-radius: 8px;
+  flex: none;
+  align-items: center;
+  gap: 3px;
+  padding: 6px 9px;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  display: inline-flex;
+}
+.review-rating-chip span {
+  color: #ffd64a;
+}
+.review-rating-chip.small {
+  padding: 5px 8px;
+  font-size: 12px;
+}
+.review-comment {
+  color: #323232;
+  white-space: pre-wrap;
+  margin: 20px 0 15px;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+.review-date {
+  color: #929292;
+  font-size: 11px;
+  font-weight: 500;
+}
+.empty-state {
+  background: linear-gradient(140deg, #fff7f7, #fff 72%);
+  padding: 25px 22px;
+}
+.empty-mark {
+  background: var(--accent-soft);
+  width: 42px;
+  height: 42px;
+  color: var(--accent);
+  border-radius: 14px;
+  place-items: center;
+  margin-bottom: 17px;
+  font-size: 24px;
+  display: grid;
+}
+.empty-state h2 {
+  margin-bottom: 8px;
+}
+.empty-state p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+}
+.older-reviews {
+  margin-top: 30px;
+}
+.older-heading-row {
+  margin-bottom: 10px;
+}
+.older-heading-row .eyebrow {
+  margin-bottom: 5px;
+}
+.older-count {
+  background: var(--surface-soft);
+  min-width: 28px;
+  height: 28px;
+  color: var(--muted);
+  border-radius: 999px;
+  place-items: center;
+  padding: 0 8px;
+  font-size: 12px;
+  font-weight: 700;
+  display: grid;
+}
+.review-list {
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+}
+.review-item {
+  background: #fff;
+  border: 1px solid #f0f0f0;
+  border-radius: 16px;
+  padding: 16px 17px;
+}
+.review-item .review-comment {
+  margin: 12px 0 0;
+  font-size: 15px;
+  font-weight: 500;
+}
+.text-link {
+  background: var(--accent);
+  color: #fff;
+  border-radius: 15px;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  min-height: 54px;
+  margin-top: 23px;
+  padding: 0 18px;
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+  display: flex;
+  box-shadow: 0 8px 18px rgba(232, 63, 84, .18);
+}
+.link-arrow {
+  background: rgba(255, 255, 255, .2);
+  border-radius: 50%;
+  place-items: center;
+  width: 29px;
+  height: 29px;
+  font-size: 18px;
+  display: grid;
+}
+.text-link:hover {
+  background: #d93349;
+}
+
+/* 5 — review form */
+.back-link {
+  color: var(--foreground);
+  align-items: center;
+  gap: 9px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-flex;
+}
+.back-arrow {
+  background: var(--surface-soft);
+  border-radius: 50%;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  font-size: 18px;
+  display: grid;
+}
+.review-kicker {
+  margin-top: 34px;
+  margin-bottom: 21px;
+}
+.form-heading {
+  margin-bottom: 23px;
+}
+.form-heading > .muted {
+  margin: 0;
+  font-size: 14px;
+}
+.review-form {
+  background: var(--surface);
+  border: 1px solid #f0f0f0;
+  border-radius: 20px;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 21px 18px 19px;
+  display: flex;
+  box-shadow: 0 9px 30px rgba(0, 0, 0, .05);
+}
+.rating-picker {
+  border: 0;
+  margin: 0 0 24px;
+  padding: 0;
+}
+.field-label {
+  color: var(--foreground);
+  margin-bottom: 7px;
+  font-size: 15px;
+  font-weight: 700;
+  display: block;
+}
+.field-hint {
+  color: var(--muted);
+  margin: 0 0 15px;
+  font-size: 12px;
+  line-height: 1.45;
+}
+.star-options {
+  gap: 9px;
+  display: flex;
+}
+.star-button {
+  color: #c4c4c4;
+  cursor: pointer;
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 14px;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  font-size: 25px;
+  transition: border-color .12s, color .12s, background .12s, transform .12s;
+}
+.star-button:hover,
+.star-button.selected {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-color: #ffd5db;
+  transform: translateY(-1px);
+}
+.comment-label {
+  margin-bottom: 10px;
+}
+.comment-input {
+  resize: vertical;
+  width: 100%;
+  min-height: 154px;
+  color: var(--foreground);
+  background: #fff;
+  border: 1px solid #e9e9e9;
+  border-radius: 14px;
+  outline: none;
+  padding: 15px;
+  font-size: 14px;
+  line-height: 1.55;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, .02);
+}
+.comment-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(232, 63, 84, .1);
+}
+.comment-input::placeholder {
+  color: #a1a1a1;
+}
+.submit-button {
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+  border-radius: 14px;
+  align-self: stretch;
+  min-height: 52px;
+  margin-top: 19px;
+  padding: 14px 20px;
+  font-size: 15px;
+  font-weight: 700;
+}
+.submit-button:hover:not(:disabled) {
+  background: #d93349;
+}
+.submit-button:disabled {
+  cursor: not-allowed;
+  background: #f1b7c0;
+  border-color: #f1b7c0;
+}
+.notice {
+  color: #b3293c;
+  margin: 16px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* 6 — breakpoints */
+@media (min-width: 700px) {
+  .page-shell {
+    padding-top: 54px;
+  }
+  .screen-kicker {
+    margin-bottom: 36px;
+  }
+  .rating-summary {
+    padding: 20px 22px;
+  }
+}
+@media (max-width: 480px) {
+  .page-shell {
+    width: min(100% - 32px, 520px);
+    padding-top: 26px;
+  }
+  .screen-kicker {
+    margin-bottom: 0;
+  }
+  .screen-topbar {
+    margin-bottom: 25px;
+  }
+  .wordmark > span {
+    font-size: 21px;
+  }
+  .restaurant-heading {
+    margin-bottom: 22px;
+  }
+  .rating-summary {
+    padding: 16px;
+  }
+  .latest-review,
+  .empty-state {
+    padding: 20px 18px;
+  }
+  .review-form {
+    padding: 19px 16px 16px;
+  }
+  .star-options {
+    gap: 7px;
+  }
+  .star-button {
+    width: 44px;
+    height: 44px;
+  }
 }
