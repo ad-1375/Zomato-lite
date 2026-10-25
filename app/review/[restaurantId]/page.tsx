@@ -1,5 +1,6 @@
 // app/review/[restaurantId]/page.tsx — Screen 1: write a review.
-// The restaurant name at top, five clickable stars, a comment box, a Submit button.
+// The restaurant name at top, five star radios (arrow keys and screen readers
+// included), a comment box, a Submit button.
 // If the backend rejects the request, THIS PAGE displays the backend's own error
 // message — it never invents one of its own.
 
@@ -8,6 +9,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import type { FormEvent } from "react";
+import { Skeleton } from "@/components/ui";
 
 export default function ReviewPage() {
   const { restaurantId } = useParams<{ restaurantId: string }>();
@@ -81,30 +83,48 @@ export default function ReviewPage() {
     <main className="mx-auto w-full max-w-[560px] px-6 py-14">
       <h1 className="text-2xl font-semibold tracking-tight">Leave a review</h1>
       <p className="mt-1 text-sm text-neutral-500">
-        Reviewing {name ?? "…"}
+        Reviewing{" "}
+        {name ?? (
+          <Skeleton className="inline-block h-3 w-24 align-middle" />
+        )}
       </p>
 
       <form onSubmit={handleSubmit} className="mt-10 space-y-8">
-        <div>
-          <p className="text-sm font-medium">Your rating</p>
-          <div className="mt-3 flex gap-2">
+        <fieldset className="m-0 border-0 p-0">
+          {/* Real radios: a keyboard moves between the five stars with the
+              arrow keys, screen readers announce "1 of 5 stars, radio", and
+              each tap target is 48px. Visually the same amber stars. */}
+          <legend className="text-sm font-medium">Your rating</legend>
+          <div className="mt-3 flex gap-1.5">
             {[1, 2, 3, 4, 5].map((star) => (
-              <button
+              <label
                 key={star}
-                type="button"
-                aria-label={`${star} of 5 stars`}
-                onClick={() => setRating(star)}
-                className={`text-3xl leading-none transition-colors ${
-                  rating !== null && star <= rating
-                    ? "text-amber-600"
-                    : "text-neutral-300 hover:text-neutral-400"
-                }`}
+                htmlFor={`rating-${star}`}
+                className="flex h-12 w-12 cursor-pointer items-center justify-center rounded-md [&:has(input:focus-visible)]:ring-2 [&:has(input:focus-visible)]:ring-amber-600 [&:has(input:focus-visible)]:ring-offset-2"
               >
-                ★
-              </button>
+                <input
+                  id={`rating-${star}`}
+                  type="radio"
+                  name="rating"
+                  checked={rating === star}
+                  onChange={() => setRating(star)}
+                  aria-label={`${star} out of 5 stars`}
+                  className="sr-only"
+                />
+                <span
+                  aria-hidden="true"
+                  className={`text-3xl leading-none transition-colors ${
+                    rating !== null && star <= rating
+                      ? "text-amber-600"
+                      : "text-neutral-300"
+                  }`}
+                >
+                  ★
+                </span>
+              </label>
             ))}
           </div>
-        </div>
+        </fieldset>
 
         <div>
           <label htmlFor="comment" className="block text-sm font-medium">
